@@ -1,0 +1,115 @@
+
+Menu · JAVA
+package com.mycompany.ejemplo_nio;
+ 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.List;
+import java.util.Scanner;
+ 
+/**
+ * Programa de consola para administrar alumnos usando la clase Files (NIO).
+ * Los alumnos se guardan en el archivo alumnos_nio.txt, uno por línea,
+ * con el formato: id nombre
+ *
+ * @author Christ
+ */
+public class menu {
+ 
+    /**
+     * Muestra el menú principal y ejecuta la opción elegida
+     * hasta que el usuario escoja salir (6).
+     *
+     * @param args argumentos de la línea de comandos (no se usan)
+     * @throws IOException si hay un error al leer o escribir el archivo
+     */
+    public static void main(String[] args) throws IOException {
+        Path ruta = Path.of("alumnos_nio.txt"); // archivo donde se guardan los alumnos
+        Scanner leer = new Scanner(System.in);
+        int opcion = 0;
+ 
+        while (opcion != 6) {
+            // Menú principal
+            System.out.println("             menu principal               ");
+            System.out.println("1.Agregar alumno");
+            System.out.println("2.ver alumnos");
+            System.out.println("3.buscar alumno por id");
+            System.out.println("4.Actualizar nombre de alumno");
+            System.out.println("5.eliminar alumno");
+            System.out.println("6,salir tilin");
+            System.out.println("Eligue una opcion: ");
+            opcion = leer.nextInt();
+            leer.nextLine(); // limpia el salto de línea que deja nextInt()
+ 
+            switch (opcion) {
+ 
+                // 1. Agregar alumno: pide nombre e id y los guarda al final del archivo
+                case 1 -> {
+                    System.out.print("\nEscribe tu nombre: ");
+                    String nombre = leer.nextLine();
+                    System.out.print("\nEscribe tu id: ");
+                    String id = leer.nextLine();
+                    // CREATE crea el archivo si no existe, APPEND agrega sin borrar lo anterior
+                    Files.writeString(ruta, "\n" + id + " " + nombre,
+                            StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                    System.out.println("Alumno registrado con exito");
+                }
+ 
+                // 2. Ver alumnos: imprime todas las líneas del archivo
+                case 2 -> {
+                    List<String> lineas = Files.readAllLines(ruta);
+                    lineas.forEach(System.out::println);
+                }
+ 
+                // 3. Buscar alumno: imprime la línea que empiece con el id escrito
+                case 3 -> {
+                    System.out.print("Escribe el id a buscar: ");
+                    String idBuscar = leer.nextLine();
+                    for (String linea : Files.readAllLines(ruta)) {
+                        // el espacio evita que el id 1 también encuentre el 10 o el 123
+                        if (linea.startsWith(idBuscar + " ")) {
+                            System.out.println(linea);
+                        } else {
+                            System.out.println("id no encontrado");
+                        }
+                    }
+                }
+ 
+                // 4. Actualizar nombre: busca el id y reemplaza esa línea con el nuevo nombre
+                case 4 -> {
+                    System.out.println("ID del que deseas actualizar: ");
+                    String idcambiar = leer.nextLine();
+                    System.out.println("nuevo nombre: ");
+                    String nuevonombre = leer.nextLine();
+                    List<String> todas = Files.readAllLines(ruta);
+                    for (int i = 0; i < todas.size(); i++) { // i = posición de la línea
+                        if (todas.get(i).startsWith(idcambiar + " ")) {
+                            todas.set(i, idcambiar + " " + nuevonombre);
+                        }
+                    }
+                    Files.write(ruta, todas); // reescribe el archivo con los cambios
+                }
+ 
+                // 5. Eliminar alumno: pide confirmación y quita la línea con ese id
+                case 5 -> {
+                    System.out.println("id del alumno a eliminar: ");
+                    String ideliminar = leer.nextLine();
+                    System.out.print("estas seguro que quieres eliminar(s/n): ");
+                    String confirmar = leer.nextLine();
+                    if (confirmar.equalsIgnoreCase("s")) {
+                        List<String> lista = Files.readAllLines(ruta);
+                        lista.removeIf(l -> l.startsWith(ideliminar + " "));
+                        Files.write(ruta, lista);
+                        System.out.println("eliminado corectamente");
+                    }
+                }
+ 
+                // 6. Salir: no hace nada, el while termina porque opcion == 6
+                case 6 -> {
+                }
+            }
+        }
+    }
+}
